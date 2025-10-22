@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Article Layout</title>
+  <link rel="stylesheet" href="src/style.css" />
+</head>
+
+<body>
+  <div class="container">
+    <header class="page-header">
+      <div class="logo">
+        <a href="/">SLOW BOATS</a>
+      </div>
+      <div class="article-header">
+        <div class="actions">
+          <div class="social-icons">
+            <button class="icon-button">
+              <img src="icons/copy.svg" alt="copy" width="20" height="20">
+            </button>
+            <button class="icon-button">
+              <img src="icons/llm.svg" alt="llm" width="20" height="20">
+            </button>
+            <button class="icon-button" id="file-loader-btn">
+              <img src="icons/sync.svg" alt="sync" width="20" height="20">
+            </button>
+          </div>
+          <a href="#" class="comments-link">
+
+            <span class="comment-text">Index</span>
+          </a>
+        </div>
+      </div>
+      <div class="timestamp">Oct 22, 2025, 13:06 PM</div>
+    </header>
+
+    <div class="article-content">
+      <div class="author-section">
+        <img src="img/author.jpg" alt="Gavin Young" class="author-avatar">
+        <div class="author-bio">
+          <svg class="plus-icon-inline" width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M8 3V13M3 8H13" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <a href="bio.html" class="author-name-inline">Gavin Young</a>
+          <span class="bio-text"> spent most of his youth in Cornwall and South Wales. He studied modern history at
+            Oxford University and spent two years with a shipping company in Basra, Iraq, before setting out for wilder
+            places. At first he lived with the Marsh Arabs in southern Iraq, between the Tigris and Euphrates rivers,
+            and he recorded his adventures there in his first book, Return to the Marshes. He then stayed with the
+            obscure people of the plains and mountains of south-western Arabia. From Tunis he joined the Observer as a
+            foreign correspondent in 1960 and subsequently covered fifteen wars and revolutions throughout the
+            world.</span>
+        </div>
+      </div>
+
+
+      <!-- article -->
+
+      <article class="main-article" id="article-content">
+
+
+      </article>
+    </div>
+  </div>
+
+  <!-- Hidden file input for markdown loading -->
+  <input type="file" id="file-input" accept=".md,.txt" style="display: none;">
+
+  <div id="top"></div>
+  <script crossorigin="anonymous" src="//unpkg.com/same-runtime/dist/index.global.js"></script>
+  <script type="module" src="/src/main.ts"></script>
+  <script>
+    // Convert existing content to markdown format for embedded use
+    const contentData = `### Biography
+
+Gavin Young spent most of his youth in Cornwall and South Wales. He studied modern history at Oxford University and spent two years with a shipping company in Basra, Iraq, before setting out for wilder places. At first he lived with the Marsh Arabs in southern Iraq, between the Tigris and Euphrates rivers, and he recorded his adventures there in his first book, Return to the Marshes. He then stayed with the obscure people of the plains and mountains of south‑western Arabia.
+
+From Tunis he joined the Observer as a foreign correspondent in 1960 and subsequently covered fifteen wars and revolutions throughout the world. He is a Fellow of the Royal Society of Literature.
+
+### Other works
+
+Gavin Young then travelled around the world, by whatever waterborne transport was available at the time, and published the story of that extraordinary voyage in his next two bestselling books, Slow Boats to China (1981) and Slow Boats Home (1985). A compilation of his writing appeared in 1987 as Worlds Apart, summoning up more than twenty years of travel and adventure in some of the world's most remote and exciting places. This was followed a year later by Beyond Lion Rock, relating the remarkable story of the Cathay Pacific Airways. He continued his lifelong fascination with travel and his love of the sea In Search of Conrad (1991), a magical evocation of the world of Joseph Conrad. Many of Gavin Young's books are published by Penguin.`;
+
+    // Simple markdown parser for basic formatting
+    function parseMarkdown(text) {
+      // First handle headers (order matters - longest first)
+      let html = text
+        .replace(/^### (.*$)/gim, '<h3 class="article-title">$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1 class="article-title">$1</h1>');
+
+      // Then handle bold and italic
+      html = html
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+      // Handle links
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
+      // Split into paragraphs and wrap non-header content
+      const paragraphs = html.split('\n\n').filter(p => p.trim());
+
+      return paragraphs.map(p => {
+        const trimmed = p.trim();
+        if (trimmed.startsWith('<h1>') || trimmed.startsWith('<h2>') || trimmed.startsWith('<h3>')) {
+          return trimmed;
+        }
+        return `<p>${trimmed}</p>`;
+      }).join('');
+    }
+
+    // Auto-load content when file is selected
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const text = e.target.result;
+        const articleElement = document.getElementById('article-content');
+        const htmlContent = parseMarkdown(text);
+        articleElement.innerHTML = htmlContent;
+
+        // Regenerate index after loading new content
+        generateIndex();
+      };
+      reader.readAsText(file);
+    }
+
+    // Global variables for index management
+    let indexContainer = null;
+    let indexEventListenersAdded = false;
+
+    // Generate index from h3 titles
+    function generateIndex() {
+      console.log('Generating index');
+      const indexLink = document.querySelector('.comments-link');
+
+      if (!indexLink) {
+        console.error('Index link not found');
+        return;
+      }
+
+      console.log('Index link found');
+
+      // Remove existing index container if it exists
+      if (indexContainer) {
+        indexContainer.remove();
+        indexContainer = null;
+      }
+
+      // Create index modal/dropdown
+      indexContainer = document.createElement('div');
+      indexContainer.className = 'index-dropdown';
+      indexContainer.style.display = 'none';
+
+      // Add "Top of Page" link
+      const topLink = document.createElement('a');
+      topLink.href = '#top';
+      topLink.className = 'index-item';
+      topLink.textContent = '↑ Top of Page';
+      indexContainer.appendChild(topLink);
+
+      // Find all h3 elements in the article
+      const h3Elements = document.querySelectorAll('.main-article h3');
+
+      console.log('Found h3 elements:', h3Elements.length);
+
+      h3Elements.forEach((h3, index) => {
+        // Create ID for the h3 if it doesn't have one
+        if (!h3.id) {
+          h3.id = 'section-' + (index + 1);
+        }
+
+        // Create link in index
+        const link = document.createElement('a');
+        link.href = '#' + h3.id;
+        link.className = 'index-item';
+        link.textContent = h3.textContent;
+        indexContainer.appendChild(link);
+      });
+
+      // Add index container to actions div (parent of indexLink)
+      const actionsDiv = indexLink.parentElement;
+      actionsDiv.style.position = 'relative';
+      actionsDiv.appendChild(indexContainer);
+
+      console.log('Index container added');
+
+      // Add event listeners only once
+      if (!indexEventListenersAdded) {
+        // Toggle index on click
+        indexLink.addEventListener('click', function (e) {
+          e.preventDefault();
+          if (indexContainer) {
+            const isVisible = indexContainer.style.display === 'block';
+            indexContainer.style.display = isVisible ? 'none' : 'block';
+            console.log('Index toggled:', indexContainer.style.display);
+          }
+        });
+
+        // Close index when clicking outside
+        document.addEventListener('click', function (e) {
+          if (indexContainer && !actionsDiv.contains(e.target)) {
+            indexContainer.style.display = 'none';
+          }
+        });
+
+        indexEventListenersAdded = true;
+      }
+
+      // Add smooth scroll behavior (this needs to be re-added for new content)
+      indexContainer.addEventListener('click', function (e) {
+        if (e.target.classList.contains('index-item')) {
+          e.preventDefault();
+          const targetId = e.target.getAttribute('href').substring(1);
+          const targetElement = targetId === 'top' ? document.body : document.getElementById(targetId);
+
+          if (targetElement) {
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            indexContainer.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // Initialize everything when page loads
+    window.addEventListener('load', function () {
+      console.log('Page loaded');
+
+      // Load default content on page load
+      const articleElement = document.getElementById('article-content');
+      const htmlContent = parseMarkdown(contentData);
+      articleElement.innerHTML = htmlContent;
+
+      // Set up file loading functionality
+      const fileInput = document.getElementById('file-input');
+      const fileLoaderBtn = document.getElementById('file-loader-btn');
+
+      if (fileLoaderBtn && fileInput) {
+        fileLoaderBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          fileInput.click();
+        });
+
+        fileInput.addEventListener('change', handleFileSelect);
+      }
+
+      // Generate initial index after loading content
+      generateIndex();
+    });
+  </script>
+</body>
+
+</html>
