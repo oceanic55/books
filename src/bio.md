@@ -1,0 +1,7 @@
+Gavin Young spent most of his youth in Cornwall and South Wales. 
+He studied modern history at Oxford University and spent two years with a shipping company in Basra, Iraq, before setting out for wilder places. 
+At first he lived with the Marsh Arabs in southern Iraq, between the Tigris and Euphrates rivers, and he recorded his adventures there in his first book, Return to the Marshes. He then stayed with the obscure people of the plains and mountains of south-western Arabia. From Tunis he joined the Observer as a foreign correspondent in 1960 and subsequently covered fifteen wars and revolutions throughout the world. 
+He is a Fellow of the Royal Society of Literature. Return to the Marshes (1977) was followed by Iraq: Land of Two Rivers (1980), an account of his journey through Mesopotamia. 
+Gavin Young then travelled around the world, by whatever waterborne transport was available at the time, and published the story of that extraordinary voyage in his next two bestselling books, Slow Boats to China (1981) and Slow Boats Home (1985). 
+A compilation of his writing appeared in 1987 as Worlds Apart, summoning up more than twenty years of travel and adventure in some of the world's most remote and exciting places. This was followed a year later by Beyond Lion Rock, relating the remarkable story of the Cathay Pacific Airways. 
+He continued his lifelong fascination with travel and his love of the sea in In Search of Conrad (1991), a magical evocation of the world of Joseph Conrad. Many of Gavin Young's books are published by Penguin.

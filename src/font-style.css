@@ -1,0 +1,58 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Page */
+body {
+    background: #ffffff;
+    /* target background appears white */
+    color: #1a1a1a;
+    /* deep neutral body text */
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+.article-content {
+    max-width: 720px;
+    /* visually similar line-length to target */
+    margin: 0 auto;
+    padding: 32px 20px;
+}
+
+/* Target body copy — closely matches target.jpg */
+.main-article {
+    font-family: Georgia, "Times New Roman", serif;
+    /* classic news serif */
+    font-size: 18px;
+    /* visual size in target */
+    line-height: 1.70;
+    /* airy leading seen in screenshot */
+    font-weight: 400;
+    /* regular weight */
+    letter-spacing: 0;
+    /* natural spacing for Georgia */
+    margin-bottom: 4rem;
+}
+
+.main-article p {
+    margin-bottom: 24px;
+}
+
+.main-article a {
+    color: #1a1a1a;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+/* Spacing from bio.html */
+/* double the vertical space below the article title */
+.article-title {
+    margin-bottom: 2rem;
+    margin-top: 4rem;
+}
+
+/* add double vertical space after the article */
