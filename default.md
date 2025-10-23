@@ -1,16 +1,18 @@
-[ gtting utensils and stuff]
+[ OPENING Page here ]
 
-[[ That decided, I booked a flight to Athens and began to gather together the things I would need on a sea voyage of indeterminate length.]]
+[[Notebooks, ballpoint pens and books were the first requirements. Conrad’s Under Western Eyes and Mirror of the Sea, Ford Madox Ford’s Memories and Impressions, a handful of thrillers, Joseph Heller’s Good as Gold, Vintage Wodehouse. I was taking two cameras and I wanted to keep my money safe, so I bought a metal suitcase at some expense. It had a combination lock, and the salesman assured me it would take gelignite to open it if the lock was turned. It was heavy, so I took a light zip-fastened bag as well.]]
 
-Notebooks, ballpoint pens and books were the first requirements. Conrad’s Under Western Eyes and Mirror of the Sea, Ford Madox Ford’s Memories and Impressions, a handful of thrillers, Joseph Heller’s Good as Gold, Vintage Wodehouse. I was taking two cameras and I wanted to keep my money safe, so I bought a metal suitcase at some expense. It had a combination lock, and the salesman assured me it would take gelignite to open it if the lock was turned. It was heavy, so I took a light zip-fastened bag as well.
+### Getting on
+
 
 God knew where I would find myself from week to week, so I arranged with my bank to send money to certain places on my way where I could pick it up by producing my passport. I don’t like travelling with bundles of notes or even large numbers of traveller’s cheques. I bought a money belt, too, but in the end I used it only in the Sulu Sea, thinking that the pirates there might strip and search me without stopping to examine the back of an ordinary-looking belt. (The result of this subterfuge was that a number of banknotes were so damaged by salt water and sweat that for a long time in the Philippines I hesitated to try to pass them.)
 
-## This is an H2 Heading
 
 ### This is an H3 Heading
 
 It was going to be wet at sea and possibly cold, so I took my old green Grenfell anorak from Vietnam days. I had thick-soled, strong shoes and a pair of lighter ones to wear ashore. Medicines: I bought Septrin, Mexaform (for diarrhoea) and aspirin. I washed out my father’s hip flask and filled it with Scotch. A newly acquired Polaroid camera was to prove almost as useful to me in breaking the ice with shy and hostile strangers as beads were to explorers of old.
+
+## This is an H2 Heading
 
 I couldn’t think of anything else.
 
