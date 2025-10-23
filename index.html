@@ -17,14 +17,19 @@
       <div class="article-header">
         <div class="actions">
           <div class="social-icons">
-            <button class="icon-button">
-              <img src="icons/copy.svg" alt="copy" width="20" height="20">
+
+            <button class="icon-button" id="qa-btn">
+              <img src="icons/qa.svg" alt="qa" width="20" height="20">
             </button>
-            <button class="icon-button">
+
+            <button class="icon-button" id="window-btn">
+              <img src="icons/window.svg" alt="window" width="20" height="20">
+            </button>
+            <button class="icon-button" id="llm-selector-btn">
               <img src="icons/llm.svg" alt="llm" width="20" height="20">
             </button>
             <button class="icon-button" id="file-loader-btn">
-              <img src="icons/sync.svg" alt="sync" width="20" height="20">
+              <img src="icons/sync.svg" alt="sync" height="20">
             </button>
           </div>
           <a href="#" class="comments-link">
@@ -33,12 +38,12 @@
           </a>
         </div>
       </div>
-      <div class="timestamp">Oct 22, 2025, 13:06 PM</div>
+      <div class="timestamp"> </div>
     </header>
 
     <div class="article-content">
       <div class="author-section">
-        <img src="img/author.jpg" alt="Author here" class="author-avatar">
+        <img src="author-avatar/meta.svg" alt="Author here" class="author-avatar">
         <div class="author-bio">
           <svg class="plus-icon-inline" width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path d="M8 3V13M3 8H13" stroke="#6D28D9" stroke-width="2" stroke-linecap="round" />
@@ -51,6 +56,15 @@
 
       <!-- article -->
 
+      <!-- Text field for copy functionality -->
+      <div id="text-field-container" style="display: none; position: relative; margin-bottom: 20px;">
+        <button id="text-field-close"
+          style="position: absolute; top: 8px; right: 8px; background: rgba(255, 255, 255, 0.9); border: 1px solid #ddd; border-radius: 4px; width: 24px; height: 24px; cursor: pointer; font-size: 16px; line-height: 1; color: #666; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10;"
+          title="Close">&times;</button>
+        <textarea id="copy-text-field"
+          style="width: 100%; min-height: 100px; padding: 12px 40px 12px 12px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; font-size: 14px; line-height: 1.5; resize: none;"></textarea>
+      </div>
+
       <article class="main-article" id="article-content">
 
 
@@ -61,8 +75,204 @@
   <!-- Hidden file input for markdown loading -->
   <input type="file" id="file-input" accept=".md,.txt" style="display: none;">
 
+  <!-- API Key Modal -->
+  <div id="api-key-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%;">
+      <h2 style="margin-top: 0; color: #333;">Enter Groq API Key</h2>
+      <p style="color: #666; margin-bottom: 20px;">Please enter your Groq API key. It will be stored securely in your
+        browser.</p>
+      <input type="password" id="api-key-input" placeholder="gsk_..."
+        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; margin-bottom: 15px;">
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button id="api-key-cancel"
+          style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+        <button id="api-key-submit"
+          style="padding: 10px 20px; border: none; background: #6D28D9; color: white; border-radius: 4px; cursor: pointer;">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quiz Modal -->
+  <div id="quiz-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
+    <div
+      style="background: white; padding: 30px; border-radius: 8px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #333;">Quiz</h2>
+        <button id="quiz-close"
+          style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+      </div>
+      <div id="quiz-progress" style="color: #666; margin-bottom: 20px; font-size: 14px;"></div>
+      <div id="quiz-content"></div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+        <button id="quiz-next"
+          style="padding: 10px 24px; border: none; background: #6D28D9; color: white; border-radius: 4px; cursor: pointer; display: none;">Next
+          Question</button>
+      </div>
+    </div>
+  </div>
+
   <div id="top"></div>
   <script>
+    // Groq API Configuration
+    const AVAILABLE_MODELS = [
+      'groq/compound',
+      'moonshotai/kimi-k2-instruct-0905',
+      'meta-llama/llama-4-scout-17b-16e-instruct'
+    ];
+
+    let currentModel = 'groq/compound';
+    let llmDropdown = null;
+
+    // API Key Management
+    function getStoredApiKey() {
+      return localStorage.getItem('groq_api_key');
+    }
+
+    function setStoredApiKey(key) {
+      localStorage.setItem('groq_api_key', key);
+    }
+
+    function showApiKeyModal() {
+      const modal = document.getElementById('api-key-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('api-key-input').focus();
+      }
+    }
+
+    function hideApiKeyModal() {
+      const modal = document.getElementById('api-key-modal');
+      if (modal) {
+        modal.style.display = 'none';
+        document.getElementById('api-key-input').value = '';
+      }
+    }
+
+    // Update author avatar based on loaded model
+    function updateAuthorAvatar(modelName) {
+      const avatarImg = document.querySelector('.author-avatar');
+      if (!avatarImg) return;
+
+      let avatarSrc = 'author-avatar/meta.svg'; // default
+
+      if (modelName === 'groq/compound') {
+        avatarSrc = 'author-avatar/g.svg';
+      } else if (modelName === 'moonshotai/kimi-k2-instruct-0905') {
+        avatarSrc = 'author-avatar/kimi.svg';
+      } else if (modelName === 'meta-llama/llama-4-scout-17b-16e-instruct') {
+        avatarSrc = 'author-avatar/meta.svg';
+      }
+
+      avatarImg.src = avatarSrc;
+    }
+
+    // Load and initialize LLM
+    async function initializeLLM(modelName = null) {
+      const apiKey = getStoredApiKey();
+
+      if (!apiKey) {
+        showApiKeyModal();
+        return;
+      }
+
+      try {
+        const selectedModel = modelName || currentModel;
+
+        // Test connection to Groq API with the selected model
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: selectedModel,
+            messages: [
+              {
+                role: 'user',
+                content: 'Hello'
+              }
+            ],
+            max_tokens: 5
+          })
+        });
+
+        if (response.ok) {
+          currentModel = selectedModel;
+          // Update timestamp div with the loaded model name
+          const timestampDiv = document.querySelector('.timestamp');
+          if (timestampDiv) {
+            timestampDiv.textContent = selectedModel;
+          }
+          // Update author avatar based on loaded model
+          updateAuthorAvatar(selectedModel);
+          console.log('LLM loaded successfully:', selectedModel);
+        } else {
+          throw new Error(`API request failed: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Failed to initialize LLM:', error);
+        const timestampDiv = document.querySelector('.timestamp');
+        if (timestampDiv) {
+          timestampDiv.textContent = 'LLM connection failed';
+        }
+        // If API key is invalid, prompt again
+        if (error.message.includes('401') || error.message.includes('403')) {
+          localStorage.removeItem('groq_api_key');
+          showApiKeyModal();
+        }
+      }
+    }
+
+    // Show LLM selector dropdown
+    function showLLMSelector() {
+      const llmBtn = document.getElementById('llm-selector-btn');
+      if (!llmBtn) return;
+
+      // Remove existing dropdown if any
+      if (llmDropdown) {
+        llmDropdown.remove();
+        llmDropdown = null;
+        return;
+      }
+
+      llmDropdown = document.createElement('div');
+      llmDropdown.className = 'index-dropdown';
+      llmDropdown.style.display = 'block';
+      llmDropdown.style.position = 'absolute';
+      llmDropdown.style.top = '100%';
+      llmDropdown.style.right = '0';
+      llmDropdown.style.marginTop = '5px';
+
+      AVAILABLE_MODELS.forEach(model => {
+        const modelItem = document.createElement('a');
+        modelItem.href = '#';
+        modelItem.className = 'index-item';
+        modelItem.textContent = model;
+        if (model === currentModel) {
+          modelItem.style.fontWeight = 'bold';
+          modelItem.style.color = '#6D28D9';
+        }
+
+        modelItem.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await initializeLLM(model);
+          if (llmDropdown) {
+            llmDropdown.remove();
+            llmDropdown = null;
+          }
+        });
+
+        llmDropdown.appendChild(modelItem);
+      });
+
+      const socialIcons = llmBtn.parentElement;
+      socialIcons.style.position = 'relative';
+      socialIcons.appendChild(llmDropdown);
+    }
+
     // Load default markdown file on page load
     function loadDefaultContent() {
       const xhr = new XMLHttpRequest();
@@ -199,12 +409,408 @@
       });
     }
 
+    // Handle window button click - summarize article
+    async function handleWindowButtonClick() {
+      const textField = document.getElementById('copy-text-field');
+      const textFieldContainer = document.getElementById('text-field-container');
+      const articleContent = document.getElementById('article-content');
+      const apiKey = getStoredApiKey();
+
+      if (!textField || !textFieldContainer || !articleContent) return;
+
+      if (!apiKey) {
+        showApiKeyModal();
+        return;
+      }
+
+      // Show text field and display loading message
+      textFieldContainer.style.display = 'block';
+      textField.value = 'Generating summary...';
+      textField.disabled = true;
+
+      try {
+        const articleText = articleContent.innerText;
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: currentModel,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a helpful assistant that summarizes documents clearly and concisely in paragraph form.'
+              },
+              {
+                role: 'user',
+                content: `Summarize the following markdown document in no more than 5 paragraphs. Each paragraph should contain no more than 50 words. Write in clear, coherent prose, avoiding lists or bullet points. Exclude any code blocks from the summary. Focus on capturing the key ideas and main points from the text.\n---\n${articleText}`
+              }
+            ],
+            max_tokens: 1000
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const summary = data.choices[0]?.message?.content || 'No summary generated';
+
+        textField.value = summary;
+        textField.disabled = false;
+        autoResizeTextarea(textField);
+      } catch (error) {
+        console.error('Failed to generate summary:', error);
+        textField.value = 'Error generating summary. Please try again.';
+        textField.disabled = false;
+        autoResizeTextarea(textField);
+      }
+    }
+
+    // Auto-resize textarea based on content
+    function autoResizeTextarea(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    // Quiz State
+    const quizState = {
+      questions: [],
+      currentIndex: 0,
+      userAnswers: [],
+      score: 0
+    };
+
+    // Show quiz modal
+    function showQuizModal() {
+      const modal = document.getElementById('quiz-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+      }
+    }
+
+    // Hide quiz modal
+    function hideQuizModal() {
+      const modal = document.getElementById('quiz-modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    // Render current question
+    function renderQuestion() {
+      const question = quizState.questions[quizState.currentIndex];
+      const content = document.getElementById('quiz-content');
+      const progress = document.getElementById('quiz-progress');
+      const nextBtn = document.getElementById('quiz-next');
+
+      if (!question || !content || !progress) return;
+
+      // Update progress
+      progress.textContent = `Question ${quizState.currentIndex + 1} of ${quizState.questions.length} | Score: ${quizState.score}/${quizState.currentIndex}`;
+
+      // Render question
+      content.innerHTML = `
+        <div style="margin-bottom: 20px;">
+          <div style="display: inline-block; padding: 4px 12px; background: #f3f4f6; border-radius: 4px; font-size: 12px; color: #6b7280; margin-bottom: 10px;">
+            ${question.difficulty}
+          </div>
+          <h3 style="margin: 10px 0; color: #333; font-size: 18px;">${question.question}</h3>
+        </div>
+        <div id="quiz-options" style="display: flex; flex-direction: column; gap: 10px;">
+          ${question.options.map((option, index) => `
+            <button class="quiz-option" data-index="${index}" style="padding: 15px; text-align: left; border: 2px solid #e5e7eb; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 14px;">
+              <span style="font-weight: bold; margin-right: 10px;">${String.fromCharCode(65 + index)}.</span>${option}
+            </button>
+          `).join('')}
+        </div>
+        <div id="quiz-feedback" style="margin-top: 20px; padding: 15px; border-radius: 8px; display: none;"></div>
+      `;
+
+      // Add click handlers to options
+      const options = content.querySelectorAll('.quiz-option');
+      options.forEach(option => {
+        option.addEventListener('click', () => handleAnswerSelect(parseInt(option.dataset.index)));
+      });
+
+      nextBtn.style.display = 'none';
+    }
+
+    // Handle answer selection
+    function handleAnswerSelect(selectedIndex) {
+      const question = quizState.questions[quizState.currentIndex];
+      const options = document.querySelectorAll('.quiz-option');
+      const feedback = document.getElementById('quiz-feedback');
+      const nextBtn = document.getElementById('quiz-next');
+
+      // Disable all options
+      options.forEach(opt => {
+        opt.style.pointerEvents = 'none';
+      });
+
+      // Check if correct
+      const isCorrect = selectedIndex === question.correctIndex;
+      if (isCorrect) {
+        quizState.score++;
+      }
+
+      // Store answer
+      quizState.userAnswers[quizState.currentIndex] = selectedIndex;
+
+      // Highlight selected and correct answers
+      options[selectedIndex].style.background = isCorrect ? '#d1fae5' : '#fee2e2';
+      options[selectedIndex].style.borderColor = isCorrect ? '#10b981' : '#ef4444';
+
+      if (!isCorrect) {
+        options[question.correctIndex].style.background = '#d1fae5';
+        options[question.correctIndex].style.borderColor = '#10b981';
+      }
+
+      // Show feedback
+      if (feedback) {
+        feedback.style.display = 'block';
+        feedback.style.background = isCorrect ? '#d1fae5' : '#fee2e2';
+        feedback.style.borderLeft = `4px solid ${isCorrect ? '#10b981' : '#ef4444'}`;
+        feedback.innerHTML = `
+          <div style="font-weight: bold; margin-bottom: 5px; color: ${isCorrect ? '#065f46' : '#991b1b'};">
+            ${isCorrect ? '✓ Correct!' : '✗ Incorrect'}
+          </div>
+          <div style="color: #374151;">${question.explanation}</div>
+        `;
+      }
+
+      // Show next button or finish
+      if (nextBtn) {
+        if (quizState.currentIndex < quizState.questions.length - 1) {
+          nextBtn.textContent = 'Next Question';
+          nextBtn.style.display = 'block';
+        } else {
+          nextBtn.textContent = 'Finish Quiz';
+          nextBtn.style.display = 'block';
+        }
+      }
+    }
+
+    // Handle next question
+    function handleNextQuestion() {
+      if (quizState.currentIndex < quizState.questions.length - 1) {
+        quizState.currentIndex++;
+        renderQuestion();
+      } else {
+        showQuizResults();
+      }
+    }
+
+    // Show quiz results
+    function showQuizResults() {
+      const content = document.getElementById('quiz-content');
+      const progress = document.getElementById('quiz-progress');
+      const nextBtn = document.getElementById('quiz-next');
+
+      const percentage = Math.round((quizState.score / quizState.questions.length) * 100);
+      let feedback = '';
+
+      if (percentage >= 90) {
+        feedback = 'Excellent! You have a strong understanding of the material.';
+      } else if (percentage >= 70) {
+        feedback = 'Good job! You understand most of the concepts.';
+      } else if (percentage >= 50) {
+        feedback = 'Not bad, but there\'s room for improvement.';
+      } else {
+        feedback = 'Consider reviewing the material again.';
+      }
+
+      if (progress) {
+        progress.textContent = 'Quiz Complete!';
+      }
+
+      if (content) {
+        content.innerHTML = `
+          <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 48px; font-weight: bold; color: #6D28D9; margin-bottom: 10px;">
+              ${percentage}%
+            </div>
+            <div style="font-size: 24px; margin-bottom: 10px; color: #333;">
+              ${quizState.score} out of ${quizState.questions.length}
+            </div>
+            <div style="font-size: 16px; color: #666; margin-bottom: 30px;">
+              ${feedback}
+            </div>
+            <button id="quiz-restart" style="padding: 12px 24px; border: none; background: #6D28D9; color: white; border-radius: 4px; cursor: pointer; font-size: 16px;">
+              Restart Quiz
+            </button>
+          </div>
+        `;
+
+        const restartBtn = document.getElementById('quiz-restart');
+        if (restartBtn) {
+          restartBtn.addEventListener('click', () => {
+            quizState.currentIndex = 0;
+            quizState.userAnswers = [];
+            quizState.score = 0;
+            renderQuestion();
+          });
+        }
+      }
+
+      if (nextBtn) {
+        nextBtn.style.display = 'none';
+      }
+    }
+
+    // Handle QA button click - generate quiz
+    async function handleQAButtonClick() {
+      const articleContent = document.getElementById('article-content');
+      const apiKey = getStoredApiKey();
+
+      if (!articleContent) return;
+
+      if (!apiKey) {
+        showApiKeyModal();
+        return;
+      }
+
+      // Show modal with loading state
+      showQuizModal();
+      const content = document.getElementById('quiz-content');
+      const progress = document.getElementById('quiz-progress');
+
+      if (content) {
+        content.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">Generating quiz questions...</div>';
+      }
+      if (progress) {
+        progress.textContent = 'Loading...';
+      }
+
+      try {
+        const articleText = articleContent.innerText;
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: currentModel,
+            messages: [
+              {
+                role: 'user',
+                content: `You are an expert learning systems architect specializing in creating interactive quiz questions from educational documents. Your task is to generate a JSON array of multiple-choice questions that test understanding of the document content. CRITICAL: You MUST respond with ONLY valid JSON. No markdown, no code blocks, no explanations - just the raw JSON array. **Question Design Guidelines:** - Start with foundational concepts before advanced ones - Use varied question types: - Recall: "What is X?" - Application: "How would you use X in situation Y?" - Analysis: "What's the relationship between X and Y?" - Synthesis: "How does this concept connect to [related topic]?" - Each question must have exactly 4 answer options - Only one option should be correct - Provide clear explanations for why the correct answer is right - IMPORTANT: Randomize the position of correct answers across questions. DO NOT place the correct answer at position 0 (option A) for most questions. Distribute correct answers evenly across all positions (0, 1, 2, 3). **JSON Structure Required:** Return a JSON object with a "questions" array. Each question object must have: - id: number (0-based index) - question: string (the question text) - options: array of exactly 4 strings (the answer choices) - correctIndex: number (0-3, indicating which option is correct - VARY THIS across questions) - explanation: string (why the correct answer is right) - difficulty: string (one of: "Foundational", "Intermediate", "Advanced") **Example Format:** {"questions": [{"id": 0,"question": "What is the primary purpose of X?","options": ["Option A", "Option B", "Option C", "Option D"],"correctIndex": 2,"explanation": "Option C is correct because...","difficulty": "Foundational"}]} Generate 8-10  progressive multiple-choice questions based on this document. ENSURE correct answers are distributed across different positions (not always at position 0). Return ONLY valid JSON with no markdown formatting or code blocks. Document: ${articleText}`
+              }
+            ],
+            max_tokens: 4000
+          })
+        });
+
+        if (!response.ok) {
+          if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please wait a moment and try again, or switch to a different model.');
+          }
+          if (response.status === 413) {
+            throw new Error('Article is too long. Try with a shorter document.');
+          }
+          throw new Error(`API request failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        let responseText = data.choices[0]?.message?.content || '';
+
+        // Log the raw response for debugging
+        console.log('Raw API response:', responseText);
+
+        // Check if response is empty
+        if (!responseText || responseText.trim() === '') {
+          throw new Error('API returned empty response. Try a different model or reduce article length.');
+        }
+
+        // Clean up response - remove markdown code blocks if present
+        responseText = responseText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+
+        // Log cleaned response
+        console.log('Cleaned response:', responseText);
+
+        const quizData = JSON.parse(responseText);
+
+        if (!quizData.questions || !Array.isArray(quizData.questions)) {
+          throw new Error('Invalid quiz data format');
+        }
+
+        // Initialize quiz state
+        quizState.questions = quizData.questions;
+        quizState.currentIndex = 0;
+        quizState.userAnswers = [];
+        quizState.score = 0;
+
+        // Render first question
+        renderQuestion();
+
+      } catch (error) {
+        console.error('Failed to generate quiz:', error);
+        if (content) {
+          content.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #ef4444;">
+              <div style="font-weight: bold; margin-bottom: 10px;">Error generating quiz</div>
+              <div style="font-size: 14px;">${error.message}</div>
+            </div>
+          `;
+        }
+      }
+    }
+
     // Initialize on page load
     window.addEventListener('load', () => {
+      // Setup API key modal handlers
+      const apiKeySubmit = document.getElementById('api-key-submit');
+      const apiKeyCancel = document.getElementById('api-key-cancel');
+      const apiKeyInput = document.getElementById('api-key-input');
+
+      if (apiKeySubmit) {
+        apiKeySubmit.addEventListener('click', () => {
+          const apiKey = apiKeyInput.value.trim();
+          if (apiKey) {
+            setStoredApiKey(apiKey);
+            hideApiKeyModal();
+            initializeLLM();
+          } else {
+            alert('Please enter a valid API key');
+          }
+        });
+      }
+
+      if (apiKeyCancel) {
+        apiKeyCancel.addEventListener('click', () => {
+          hideApiKeyModal();
+          const timestampDiv = document.querySelector('.timestamp');
+          if (timestampDiv) {
+            timestampDiv.textContent = 'No API key provided';
+          }
+        });
+      }
+
+      if (apiKeyInput) {
+        apiKeyInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            apiKeySubmit.click();
+          }
+        });
+      }
+
+      // Initialize LLM connection
+      initializeLLM();
+
       loadDefaultContent();
 
       const fileInput = document.getElementById('file-input');
       const fileLoaderBtn = document.getElementById('file-loader-btn');
+      const llmSelectorBtn = document.getElementById('llm-selector-btn');
+      const windowBtn = document.getElementById('window-btn');
+      const qaBtn = document.getElementById('qa-btn');
+      const textFieldClose = document.getElementById('text-field-close');
 
       if (fileLoaderBtn && fileInput) {
         fileLoaderBtn.addEventListener('click', (e) => {
@@ -213,6 +819,57 @@
         });
         fileInput.addEventListener('change', handleFileSelect);
       }
+
+      if (textFieldClose) {
+        textFieldClose.addEventListener('click', (e) => {
+          e.preventDefault();
+          const textFieldContainer = document.getElementById('text-field-container');
+          if (textFieldContainer) {
+            textFieldContainer.style.display = 'none';
+          }
+        });
+      }
+
+      if (llmSelectorBtn) {
+        llmSelectorBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          showLLMSelector();
+        });
+      }
+
+      if (windowBtn) {
+        windowBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          handleWindowButtonClick();
+        });
+      }
+
+      if (qaBtn) {
+        qaBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          handleQAButtonClick();
+        });
+      }
+
+      // Setup quiz modal handlers
+      const quizClose = document.getElementById('quiz-close');
+      const quizNext = document.getElementById('quiz-next');
+
+      if (quizClose) {
+        quizClose.addEventListener('click', hideQuizModal);
+      }
+
+      if (quizNext) {
+        quizNext.addEventListener('click', handleNextQuestion);
+      }
+
+      // Close LLM dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (llmDropdown && !e.target.closest('#llm-selector-btn') && !e.target.closest('.index-dropdown')) {
+          llmDropdown.remove();
+          llmDropdown = null;
+        }
+      });
     });
   </script>
 </body>
